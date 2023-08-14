@@ -19,7 +19,7 @@ function activate(context) {
                 return;
             }
 
-            if (!vscode.workspace.rootPath) {
+            if (!vscode.workspace.workspaceFolders) {
                 vscode.window.showErrorMessage('Please open a project/workspace.');
                 return;
             }

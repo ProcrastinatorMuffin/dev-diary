@@ -1,3 +1,6 @@
 node_modules
 .vscode-test/
 *.vsix
+.add_to_extension_js_before_pack.js
+openai_integration.js
+openai/apitest.js
