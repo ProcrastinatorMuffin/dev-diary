@@ -1,3 +1,4 @@
+// extension.js
 const vscode = require('vscode');
 const fs = require('fs');
 const JavaScriptExtractor = require('./extractors/javascript_extractor.js');
@@ -5,18 +6,7 @@ const PythonExtractor = require('./extractors/python_extractor.js');
 const JavaExtractor = require('./extractors/java_extractor.js');
 const CPPExtractor = require('./extractors/cpp_extractor.js');
 
-
 function activate(context) {
-    const provider = new FunctionTypeTokenProvider();
-
-    context.subscriptions.push(
-        vscode.languages.registerDocumentSemanticTokensProvider(
-            { language: 'javascript' },
-            provider,
-            provider.getLegend()
-        )
-    );
-
     context.subscriptions.push(
         vscode.commands.registerCommand('extension.semantic_analysis', () => {
             const editor = vscode.window.activeTextEditor;
@@ -65,40 +55,6 @@ function activate(context) {
             });
         })
     );
-}
-
-class FunctionTypeTokenProvider {
-    provideDocumentSemanticTokens(document, token) {
-        const tokensBuilder = new vscode.SemanticTokensBuilder();
-
-        for (let i = 0; i < document.lineCount; i++) {
-            const line = document.lineAt(i);
-            const functionTypeRegex = /function\s+\w+\s*\([^)]*\)\s*:\s*\w+/g;
-            let match;
-            while ((match = functionTypeRegex.exec(line.text))) {
-                const [matchText] = match;
-                const matchIndex = match.index;
-                const matchLength = matchText.length;
-                const tokenType = 0;
-                const tokenModifiers = 0;
-
-                tokensBuilder.push(
-                    matchIndex,
-                    matchLength,
-                    tokenType,
-                    tokenModifiers
-                );
-            }
-        }
-
-        return tokensBuilder.build();
-    }
-
-    getLegend() {
-        const tokenTypes = ['function'];
-        const tokenModifiers = [];
-        return new vscode.SemanticTokensLegend(tokenTypes, tokenModifiers);
-    }
 }
 
 module.exports = {
