@@ -9,11 +9,10 @@ const path = require('path');
 
 let DATABASE_PATH
 
-
 function activate(context) {
     DATABASE_PATH = path.join(context.extensionPath, 'dev-diary.db');
     context.subscriptions.push(
-        vscode.commands.registerCommand('extension.semantic_analysis', () => {
+        vscode.commands.registerCommand('extension.semantic_analysis', async () => {
             const editor = vscode.window.activeTextEditor;
 
             if (!editor) {
@@ -54,56 +53,65 @@ function activate(context) {
                 return;
             }
 
-            // Create or open the database
-            let db = new sqlite3.Database(DATABASE_PATH, (err) => {
-                if (err) {
-                    return vscode.window.showErrorMessage(err.message);
-                }
-            });
+            const db = await initializeDatabase();
 
             const projectName = path.basename(vscode.workspace.workspaceFolders[0].uri.fsPath); 
             const projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath; 
             const fileNameOnly = path.basename(document.fileName);
             const relativeFilePath = path.relative(vscode.workspace.workspaceFolders[0].uri.fsPath, document.fileName);
 
+            try {
+                await db.run('BEGIN TRANSACTION');
 
-            // Using transactions for batch operations
-            db.serialize(function() {
-                db.run('BEGIN TRANSACTION');
+                // Check if the project already exists in the database
+                const projectExists = await db.get(`SELECT COUNT(*) as count FROM project WHERE name = ? AND path = ?`, projectName, projectPath);
 
-                let stmt = db.prepare("INSERT OR IGNORE INTO project (name, path) VALUES (?, ?)");
-                stmt.run(projectName, projectPath);
-                stmt.finalize();
+                if (projectExists.count === 0) {
+                    await db.run(`INSERT INTO project (name, path) VALUES (?, ?)`, projectName, projectPath);
+                }
 
-                stmt = db.prepare("INSERT OR IGNORE INTO project_file (name, path) VALUES (?, ?)");
-                stmt.run(fileNameOnly, document.fileName);
-                stmt.finalize();
+                await db.run(`INSERT OR IGNORE INTO project_file (name, path) VALUES (?, ?)`, fileNameOnly, document.fileName);
 
-
-                stmt = db.prepare(`INSERT OR IGNORE INTO project_has_file (project_id, file_id) 
+                await db.run(`INSERT OR IGNORE INTO project_has_file (project_id, file_id) 
                     SELECT p.id, f.id 
                     FROM project p, project_file f 
-                    WHERE p.name = ? AND f.path = ?`);
-                stmt.run(projectName, document.fileName);
-                stmt.finalize();
+                    WHERE p.name = ? AND f.path = ?`, projectName, document.fileName);
 
-                // Insert the extracted functions into the database
-                functions.forEach(func => {
-                    stmt = db.prepare(`INSERT INTO raw_function (name, location, language, content, majorVersion, minorVersion, patchVersion) 
-                        VALUES (?, ?, ?, ?, 1, 0, 0)`);
-                    stmt.run(func.name, relativeFilePath, document.languageId, func.content);
-                    stmt.finalize();
-                });
+                // Insert the extracted functions into the database using a prepared statement
+                const stmt = await db.prepare(`INSERT INTO raw_function (name, location, language, content, majorVersion, minorVersion, patchVersion) 
+                    VALUES (?, ?, ?, ?, 1, 0, 0)`);
 
-                db.run('COMMIT');
-            });
+                for (const func of functions) {
+                    await stmt.run(func.name, relativeFilePath, document.languageId, func.content);
+                }
 
-            vscode.window.showInformationMessage('Functions inserted into database.');
+                await stmt.finalize();
 
-            // Close the database
-            db.close();
+                await db.run('COMMIT');
+
+                vscode.window.showInformationMessage('Functions inserted into database.');
+            } catch (err) {
+                vscode.window.showErrorMessage(err.message);
+            } finally {
+                db.close();
+            }
         })
     );
+}
+
+async function initializeDatabase() {
+    return new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(DATABASE_PATH, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                // Enable foreign key constraints for the database
+                db.run('PRAGMA foreign_keys = ON');
+
+                resolve(db);
+            }
+        });
+    });
 }
 
 module.exports = {
