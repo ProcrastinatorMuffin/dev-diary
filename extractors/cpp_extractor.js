@@ -7,6 +7,13 @@ class CppExtractor {
         let buffer = '';  // Temporary buffer to store multi-line functions or classes
         let curlyBraceCount = 0;
         let isInFunction = false;
+        let currentFunctionName = '';
+
+        // Extract function name from declaration
+        const extractFunctionName = (lineText) => {
+            const match = lineText.match(/\b(\w+)\s*\(/);
+            return match ? match[1] : '';
+        };
 
         for (let i = 0; i < document.lineCount; i++) {
             const lineText = document.lineAt(i).text.trim();
@@ -25,7 +32,8 @@ class CppExtractor {
 
             const functionDeclaration = lineText.match(/(\w+\s+)?\w+\s*\w*\s*\([^)]*\)\s*(const)?\s*{?/);
 
-            if (functionDeclaration || buffer.length > 0) {
+            if (functionDeclaration) {
+                currentFunctionName = extractFunctionName(lineText);
                 isInFunction = true;
             }
 
@@ -35,8 +43,12 @@ class CppExtractor {
                 curlyBraceCount -= (lineText.match(/}/g) || []).length;
 
                 if (curlyBraceCount === 0) {
-                    functions.push(buffer.trim());
+                    functions.push({
+                        name: currentFunctionName,
+                        content: buffer.trim()
+                    });
                     buffer = '';  // Reset the buffer
+                    currentFunctionName = '';  // Reset the function name
                     isInFunction = false;
                 }
             }
@@ -47,4 +59,5 @@ class CppExtractor {
 }
 
 module.exports = CppExtractor;
+
 

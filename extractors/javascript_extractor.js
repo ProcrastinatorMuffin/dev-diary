@@ -2,7 +2,7 @@ const vscode = require('vscode');
 
 class JavaScriptExtractor {
     extractFunctionsFromDocument(document) {
-        const functions = [];
+        const functionObjects = [];
         let decorators = '';
 
         for (let i = 0; i < document.lineCount; i++) {
@@ -12,7 +12,7 @@ class JavaScriptExtractor {
             const decoratorDeclaration = lineText.match(/^@[\w.]+/);
             
             // Match JavaScript function declarations
-            const functionDeclaration = lineText.match(/function\s+\w+\s*\([^)]*\)/);
+            const functionDeclaration = lineText.match(/function\s+(\w+)\s*\([^)]*\)/);
 
             if (decoratorDeclaration) {
                 // Add the decorator to the list of decorators for the current function
@@ -37,7 +37,8 @@ class JavaScriptExtractor {
                     j++;
                 }
 
-                functions.push(functionText.trim());
+                const functionName = functionDeclaration[1];
+                functionObjects.push({name: functionName, content: functionText.trim()});
                 decorators = ''; // Reset decorators after capturing function
             } else {
                 // If the line does not match any known patterns, reset decorators
@@ -45,7 +46,7 @@ class JavaScriptExtractor {
             }
         }
 
-        return functions;
+        return functionObjects;
     }
 }
 

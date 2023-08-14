@@ -3,10 +3,17 @@ const vscode = require('vscode');
 class PythonExtractor {
     extractFunctionsFromDocument(document) {
         const functions = [];
-        let currentFunction = '';
+        let currentFunctionContent = '';
+        let currentFunctionName = '';
         let insideFunction = false;
         let indentationLevel = null;
         let decorators = [];
+
+        // Extract function name from declaration
+        const extractFunctionName = (lineText) => {
+            const match = lineText.match(/def\s+(\w+)/);
+            return match ? match[1] : '';
+        };
 
         // Check if a line of code is a decorator declaration
         const isDecoratorDeclaration = (lineText) => {
@@ -27,47 +34,49 @@ class PythonExtractor {
             const lineText = document.lineAt(i).text;
 
             if (isDecoratorDeclaration(lineText)) {
-                // Add the decorator to the list of decorators for the current function
                 decorators.push(lineText);
             } else if (isFunctionDeclaration(lineText) && !insideFunction) {
-                // Start a new function
                 insideFunction = true;
-                currentFunction = decorators.concat(lineText).join('\n');
+                currentFunctionName = extractFunctionName(lineText);
+                currentFunctionContent = decorators.concat(lineText).join('\n');
                 decorators = [];
                 indentationLevel = getIndentationLevel(lineText);
             } else if (insideFunction) {
                 const currentIndentation = getIndentationLevel(lineText);
 
                 if (currentIndentation > indentationLevel) {
-                    // Continue capturing the function
-                    currentFunction += '\n' + lineText;
+                    currentFunctionContent += '\n' + lineText;
                 } else {
-                    // End of function
-                    functions.push(currentFunction.trim());
+                    functions.push({
+                        name: currentFunctionName,
+                        content: currentFunctionContent.trim()
+                    });
+
                     insideFunction = false;
-                    currentFunction = '';
+                    currentFunctionContent = '';
+                    currentFunctionName = '';
                     indentationLevel = null;
 
-                    // Check if the current line starts another function
                     if (isFunctionDeclaration(lineText)) {
                         insideFunction = true;
-                        currentFunction = decorators.concat(lineText).join('\n');
+                        currentFunctionName = extractFunctionName(lineText);
+                        currentFunctionContent = decorators.concat(lineText).join('\n');
                         decorators = [];
                         indentationLevel = getIndentationLevel(lineText);
                     } else if (isDecoratorDeclaration(lineText)) {
-                        // Handle case where decorator directly precedes another function
                         decorators.push(lineText);
                     }
                 }
             } else {
-                // Reset decorators if not inside a function
                 decorators = [];
             }
         }
 
-        // In case the last function of the document has been captured but not saved
         if (insideFunction) {
-            functions.push(currentFunction.trim());
+            functions.push({
+                name: currentFunctionName,
+                content: currentFunctionContent.trim()
+            });
         }
 
         return functions;
@@ -75,3 +84,4 @@ class PythonExtractor {
 }
 
 module.exports = PythonExtractor;
+
