@@ -10,3 +10,6 @@
 3. How to avoid overwriting?
     - By using versions for each function in database? It require script that can compare two functions and say if it is completelly different functions or just itterations of the same one.
         It can be implemented by converting each function to an AST and then compare the nodes
+# TODO2
+
+Adjust documentConverter and runPyExtractor to write and read files from base_dir (.add_to_extension_js_before_pack) instead off project directory
