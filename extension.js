@@ -1,7 +1,7 @@
 // extension.js
 const vscode = require('vscode');
 const JavaScriptExtractor = require('./extractors/javascript_extractor.js');
-const PythonExtractor = require('./extractors/python_extractor.js');
+const PythonExtractor = require('./extractors/pyExtractorRetriver.js');
 const JavaExtractor = require('./extractors/java_extractor.js');
 const CPPExtractor = require('./extractors/cpp_extractor.js');
 const { setDatabasePath, insertFunctionsIntoDatabase } = require('./dbOperations.js');
@@ -12,6 +12,8 @@ function activate(context) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('extension.semantic_analysis', async () => {
+            console.log('Starting semantic analysis...'); // LOGGING START
+
             const editor = vscode.window.activeTextEditor;
 
             if (!editor) {
@@ -26,6 +28,8 @@ function activate(context) {
 
             const document = editor.document;
             let extractor;
+
+            console.log('Detected language: ', document.languageId); // LOGGING LANGUAGE
 
             switch (document.languageId) {
                 case 'javascript':
@@ -45,7 +49,11 @@ function activate(context) {
                     return;
             }
 
+            console.log('Extracting functions...'); // LOGGING BEFORE EXTRACTION
+
             const functions = extractor.extractFunctionsFromDocument(document);
+
+            console.log('Functions extracted:', functions); // LOGGING FUNCTIONS EXTRACTED
 
             if (functions.length === 0) {
                 vscode.window.showWarningMessage('No functions captured. Nothing to insert into database.');
@@ -60,6 +68,7 @@ function activate(context) {
                 await insertFunctionsIntoDatabase(projectName, projectPath, fileNameOnly, document, functions);
                 vscode.window.showInformationMessage('Functions inserted into database.');
             } catch (err) {
+                console.error(err);  // LOGGING ERROR
                 vscode.window.showErrorMessage(err.message);
             }
         })
