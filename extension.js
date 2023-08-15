@@ -1,7 +1,7 @@
 // extension.js
 const vscode = require('vscode');
 const JavaScriptExtractor = require('./extractors/javascript_extractor.js');
-const PythonExtractor = require('./extractors/pyExtractorRetriver.js');
+const PythonExtractor = require('./extractors/pyextractorRetriver.js');
 const JavaExtractor = require('./extractors/java_extractor.js');
 const CPPExtractor = require('./extractors/cpp_extractor.js');
 const { setDatabasePath, insertFunctionsIntoDatabase } = require('./dbOperations.js');
