@@ -4,3 +4,10 @@ node_modules
 .add_to_extension_js_before_pack.js
 openai_integration.js
 openai/apitest.js
+extractors/temp.json
+extractors/temp.txt
+package-lock.json
+vsc-extension-quickstart.md
+dev-diary.db
+.vscodeignore
+
