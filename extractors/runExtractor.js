@@ -34,9 +34,9 @@ function getFunctionsFromCode(code, language) {
             functionNodeType = 'method_declaration'; 
             decoratorType = null;
             break;
-        case 'cpp':  // Add C++ case
-            functionNodeType = 'function_definition';  // This is the typical type for C++ function definitions
-            decoratorType = null;  // C++ doesn't use decorators like Python or JS
+        case 'cpp':  
+            functionNodeType = 'function_definition'; 
+            decoratorType = null;  
             break;
         default:
             throw new Error(`Unsupported language: ${language}`);
