@@ -11,3 +11,4 @@ vsc-extension-quickstart.md
 *.db
 .vscodeignore
 .eslintrc.json
+.DS_Store
