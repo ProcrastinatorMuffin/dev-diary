@@ -96,7 +96,7 @@ class PythonExtractor {
         const tempFilePath = saveDocumentToTempFile(document);
 
         // Run the standalone Node script
-        const child = spawnSync('node', [path.join(__dirname, 'runExtractor.js')]);
+        const child = spawnSync('node', [path.join(__dirname, 'runPyExtractor.js')]);
         
         if (child.error) {
             console.error(child.error);
