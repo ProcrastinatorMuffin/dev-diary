@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const vscode = require('vscode');
 const { saveDocumentToTempFile } = require('./documentConverter');
+const { deleteTempFile } = require('./documentConverter'); // Assuming the deleteTempFile function is defined and exported in this module.
 
 class ExtractorRetriever {
     extractFunctionsFromDocument(document) {
@@ -17,7 +18,8 @@ class ExtractorRetriever {
             throw new Error('Failed to run the extraction process.');
         }
 
-        const outputFilePath = path.join(__dirname, `${document.languageId}_temp.json`);
+        // Updated to use the 'temp' directory
+        const outputFilePath = path.join(__dirname, 'temp', `${document.languageId}_temp.json`);
         const functionsData = JSON.parse(fs.readFileSync(outputFilePath, 'utf-8'));
 
         const functions = functionsData.map(func => {
@@ -33,8 +35,14 @@ class ExtractorRetriever {
             };
         });
 
+        // Cleanup: Delete the temp files after reading
+        deleteTempFile(tempFilePath);
+        deleteTempFile(outputFilePath);
+
         return functions;
     }
 }
 
 module.exports = ExtractorRetriever;
+
+

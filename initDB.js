@@ -1,3 +1,4 @@
+// initDB.js
 const sqlite3 = require('sqlite3').verbose();
 
 // Create a new database or connect to an existing one

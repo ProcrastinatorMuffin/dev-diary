@@ -88,8 +88,9 @@ if (!languageParsers[language]) {
     process.exit(1);
 }
 
-const tempFilePath = path.resolve(__dirname, `${language}_temp.txt`);
-const outputFilePath = path.resolve(__dirname, `${language}_temp.json`);
+const tempDirPath = path.resolve(__dirname, 'temp'); // Pointing to the temp directory
+const tempFilePath = path.join(tempDirPath, `${language}_temp.txt`);
+const outputFilePath = path.join(tempDirPath, `${language}_temp.json`);
 
 if (!fs.existsSync(tempFilePath)) {
     throw new Error(`File ${tempFilePath} not found.`);

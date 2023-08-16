@@ -8,6 +8,6 @@ extractors/temp.json
 extractors/temp.txt
 package-lock.json
 vsc-extension-quickstart.md
-dev-diary.db
+*.db
 .vscodeignore
 .eslintrc.json
