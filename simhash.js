@@ -4,7 +4,6 @@ const Java = require('tree-sitter-java');
 const Python = require('tree-sitter-python');
 const Cpp = require('tree-sitter-cpp');
 
-
 // Initialize parsers for each language
 const parsers = {
     javascript: new Parser().setLanguage(JavaScript),
@@ -89,8 +88,11 @@ function preprocess(input, language) {
     return output.replace(/\s+/gm, ' ').trim();
 }
 
-// Compute the simhash fingerprint of a set of tokens
-function simhash(tokens, tokenFrequencies) {
+// Generate the simhash fingerprint of a piece of code
+function generateSimhash(input, language) {
+    const preprocessedInput = preprocess(input, language);
+    const [tokens, tokenFrequencies] = tokenizeWithTreeSitter(preprocessedInput, language);
+
     const v = Array(32).fill(0);
 
     for (let i = 0; i < tokens.length; i++) {
@@ -115,6 +117,23 @@ function simhash(tokens, tokenFrequencies) {
     return fingerprint;
 }
 
+// Compare the similarity between two pieces of code
+function compareHashSimilarity(input1, input2, language) {
+    const hash1 = generateSimhash(input1, language);
+    const hash2 = generateSimhash(input2, language);
+    const distance = hammingDistance(hash1, hash2);
+    
+    if (distance === 0) {
+        return "Completely Similar";
+    } else if (distance < 6) {
+        return "Very Similar";
+    } else if (distance < 12) {
+        return "Slightly Different";
+    } else {
+        return "Completely Different";
+    }
+}
+
 // Compute the Hamming distance between two simhash fingerprints
 function hammingDistance(hash1, hash2) {
     let x = hash1 ^ hash2;
@@ -128,18 +147,7 @@ function hammingDistance(hash1, hash2) {
     return setBits;
 }
 
-// Classify the similarity between two simhash fingerprints
-function classifySimilarity(hash1, hash2) {
-    const distance = hammingDistance(hash1, hash2);
-    
-    if (distance === 0) {
-        return "Completely Similar";
-    } else if (distance < 4) {
-        return "Very Similar";
-    } else if (distance < 8) {
-        return "Slightly Different";
-    } else {
-        return "Completely Different";
-    }
-}
-
+module.exports = {
+    generateSimhash,
+    compareHashSimilarity
+};
