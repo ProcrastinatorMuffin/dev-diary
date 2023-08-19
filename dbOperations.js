@@ -32,10 +32,9 @@ function compareHashSimilarity(hash1, hash2) {
     }      
     else {
         console.log("compareHashSimilarity child process started successfully.")
+        console.log("Comparing the following hashes:", hash1, hash2);
+        console.log("Finished hash comparison with result:", child.stdout.toString().trim());
     }
-    console.log("Executing:", path.join(__dirname, 'simhash.js'));
-    console.log("Comparing the following hashes:", hash1, hash2);
-    console.log("Finished hash comparison with result:", child.stdout.toString().trim());
     return child.stdout.toString().trim();
 }
 
@@ -97,9 +96,9 @@ async function insertFunctionsIntoDatabase(projectName, projectPath, fileNameOnl
             if (existingFunctions && existingFunctions.length) { 
                 console.log("Checking for existing functions...");
                 for (const existingFunc of existingFunctions) {
-                    console.log("Comparing with function:", existingFunc);
-                    const comparisonResult = compareHashSimilarity(simhash, existingFunc.hash);
-                    console.log("Comparison result for this function:", comparisonResult);
+                    const hash1 = simhash;
+                    const hash2 = existingFunc.hash;
+                    const comparisonResult = compareHashSimilarity(hash1, hash2);
                     switch (comparisonResult) {
                         case "Completely Similar":
                             console.log(`Executing SQL: UPDATE raw_function SET content = ?, patchVersion = patchVersion + 1 WHERE id = ${existingFunc.id}`);

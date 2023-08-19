@@ -133,17 +133,20 @@ function compareHashSimilarity(hash1, hash2) {
     }
 }
 
-// Compute the Hamming distance between two simhash fingerprints
 function hammingDistance(hash1, hash2) {
-    let x = hash1 ^ hash2;
-    let setBits = 0;
+    let int1 = parseInt(hash1, 10);
+    let int2 = parseInt(hash2, 10);
 
-    while (x) {
-        setBits += 1;
-        x &= x - 1;
+    let bin1 = (int1 >>> 0).toString(2).padStart(32, '0');
+    let bin2 = (int2 >>> 0).toString(2).padStart(32, '0');
+
+    let distance = 0;
+    for (let i = 0; i < bin1.length; i++) {
+        if (bin1[i] !== bin2[i]) {
+            distance++;
+        }
     }
-
-    return setBits;
+    return distance;
 }
 
 if (require.main === module) {
@@ -156,8 +159,8 @@ if (require.main === module) {
             console.log(generateSimhash(content, language));
             break;
             case 'compareHashSimilarity':
-                const hash1 = process.argv[5];
-                const hash2 = process.argv[6];
+                const hash1 = process.argv[3];
+                const hash2 = process.argv[4];
                 console.log(compareHashSimilarity(hash1, hash2));
                 break;            
     }
