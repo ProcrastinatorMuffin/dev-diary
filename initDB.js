@@ -31,7 +31,8 @@ db.serialize(() => {
             content TEXT,
             majorVersion INTEGER,
             minorVersion INTEGER,
-            patchVersion INTEGER
+            patchVersion INTEGER,
+            hash TEXT
         )
     `);
 
@@ -137,6 +138,13 @@ db.serialize(() => {
             FOREIGN KEY(function_id) REFERENCES raw_function(id)
         )
     `);
+
+    // Create indexes for optimized query performance
+    db.run(`CREATE INDEX idx_project_name_path ON project(name, path)`);
+    db.run(`CREATE INDEX idx_project_file_path ON project_file(path)`);
+    db.run(`CREATE INDEX idx_raw_function_location ON raw_function(location)`);
+    db.run(`CREATE INDEX idx_raw_function_hash ON raw_function(hash)`);
+    db.run(`CREATE INDEX idx_raw_function_name ON raw_function(name)`);
 });
 
 // Close the database connection

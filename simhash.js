@@ -1,3 +1,4 @@
+// simhash.js
 const Parser = require('tree-sitter');
 const JavaScript = require('tree-sitter-javascript');
 const Java = require('tree-sitter-java');
@@ -118,9 +119,7 @@ function generateSimhash(input, language) {
 }
 
 // Compare the similarity between two pieces of code
-function compareHashSimilarity(input1, input2, language) {
-    const hash1 = generateSimhash(input1, language);
-    const hash2 = generateSimhash(input2, language);
+function compareHashSimilarity(hash1, hash2) {
     const distance = hammingDistance(hash1, hash2);
     
     if (distance === 0) {
@@ -145,6 +144,23 @@ function hammingDistance(hash1, hash2) {
     }
 
     return setBits;
+}
+
+if (require.main === module) {
+    const action = process.argv[2];
+    const content = process.argv[3];
+    const language = process.argv[4];
+
+    switch (action) {
+        case 'generateSimhash':
+            console.log(generateSimhash(content, language));
+            break;
+            case 'compareHashSimilarity':
+                const hash1 = process.argv[5];
+                const hash2 = process.argv[6];
+                console.log(compareHashSimilarity(hash1, hash2));
+                break;            
+    }
 }
 
 module.exports = {
